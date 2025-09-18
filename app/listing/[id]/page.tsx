@@ -11,8 +11,8 @@ type Listing = {
   location: string;
 };
 
-// 🔹 Define props type for dynamic route
-interface PageProps {
+// 🔹 Rename to avoid conflict with Next.js internal PageProps
+interface ListingPageProps {
   params: {
     id: string;
   };
@@ -33,7 +33,7 @@ async function getListing(id: string): Promise<Listing | null> {
 }
 
 // 🔹 Server Component
-export default async function ListingPage({ params }: PageProps) {
+export default async function ListingPage({ params }: ListingPageProps) {
   const listing = await getListing(params.id);
 
   if (!listing) return notFound();
