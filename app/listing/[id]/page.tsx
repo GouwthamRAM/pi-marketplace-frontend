@@ -11,6 +11,13 @@ type Listing = {
   location: string;
 };
 
+// 🔹 Define props type for dynamic route
+interface PageProps {
+  params: {
+    id: string;
+  };
+}
+
 // 🔹 Server-side fetch
 async function getListing(id: string): Promise<Listing | null> {
   try {
@@ -26,11 +33,7 @@ async function getListing(id: string): Promise<Listing | null> {
 }
 
 // 🔹 Server Component
-export default async function ListingPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default async function ListingPage({ params }: PageProps) {
   const listing = await getListing(params.id);
 
   if (!listing) return notFound();
