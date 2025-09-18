@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import BuyButton from "./BuyButton"; // ✅ import client component
+import BuyButton from "./BuyButton"; // ✅ client component
 
 type Listing = {
   id: number;
@@ -10,13 +10,6 @@ type Listing = {
   category: string;
   location: string;
 };
-
-// 🔹 Rename to avoid conflict with Next.js internal PageProps
-interface ListingPageProps {
-  params: {
-    id: string;
-  };
-}
 
 // 🔹 Server-side fetch
 async function getListing(id: string): Promise<Listing | null> {
@@ -33,7 +26,11 @@ async function getListing(id: string): Promise<Listing | null> {
 }
 
 // 🔹 Server Component
-export default async function ListingPage({ params }: ListingPageProps) {
+export default async function ListingPage({
+  params,
+}: {
+  params: { id: string };
+}) {
   const listing = await getListing(params.id);
 
   if (!listing) return notFound();
