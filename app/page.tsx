@@ -1,25 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
 
-// 🔹 Simple Navbar component
-function Navbar() {
-  return (
-    <nav className="bg-purple-600 text-white px-6 py-3 flex justify-between items-center shadow">
-      <h1 className="text-xl font-bold">Pi Marketplace</h1>
-      <div className="space-x-4">
-        <a href="/" className="hover:underline">
-          Home
-        </a>
-        <a href="#" className="hover:underline">
-          My Orders
-        </a>
-        <a href="#" className="hover:underline">
-          Profile
-        </a>
-      </div>
-    </nav>
-  );
-}
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import Navbar from "./components/Navbar";
 
 type Listing = {
   id: number;
@@ -35,8 +18,13 @@ export default function Home() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [role, setRole] = useState<"buyer" | "seller">("buyer");
 
-  // Fetch listings on page load
+  useEffect(() => {
+    const savedRole = localStorage.getItem("userRole") || "buyer";
+    setRole(savedRole as "buyer" | "seller");
+  }, []);
+
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/listings`)
       .then((res) => res.json())
@@ -45,41 +33,32 @@ export default function Home() {
         setLoading(false);
       })
       .catch((err) => {
-        console.error(err);
+        console.error("Error fetching listings:", err);
         setLoading(false);
       });
   }, []);
 
-  // Handle Buy Now click (calls mock orders API)
   const handleBuy = async (listingId: number) => {
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/v1/orders/mock`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            buyerId: 2, // demo buyer (Bob Buyer from seed data)
-            listingId: listingId,
-          }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ buyerId: 2, listingId }),
         }
       );
-
       const data = await response.json();
 
       if (response.ok) {
-        setStatusMessage(`✅ Order placed for "${data.order.title || "listing"}"!`);
+        setStatusMessage(`✅ Order placed for "${data.order?.title || "listing"}"!`);
       } else {
         setStatusMessage(`❌ Failed: ${data.error || "Unknown error"}`);
       }
-    } catch (error) {
-      console.error(error);
+    } catch {
       setStatusMessage("❌ Network error while placing order");
     }
 
-    // Clear message after 3s
     setTimeout(() => setStatusMessage(null), 3000);
   };
 
@@ -108,7 +87,11 @@ export default function Home() {
                 className="p-4 border rounded-xl shadow-md hover:shadow-lg bg-white flex flex-col justify-between"
               >
                 <div>
-                  <h2 className="text-xl font-semibold">{item.title}</h2>
+                  <h2 className="text-xl font-semibold">
+                    <Link href={`/listing/${item.id}`} className="hover:underline">
+                      {item.title}
+                    </Link>
+                  </h2>
                   <p className="text-gray-600 mt-1">{item.description}</p>
                   <span className="inline-block mt-2 text-sm text-purple-700 bg-purple-100 px-2 py-1 rounded">
                     {item.category}
@@ -118,12 +101,14 @@ export default function Home() {
                   <p className="font-bold text-lg">
                     {item.price} {item.currency}
                   </p>
-                  <button
-                    onClick={() => handleBuy(item.id)}
-                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-                  >
-                    Buy Now
-                  </button>
+                  {role === "buyer" && (
+                    <button
+                      onClick={() => handleBuy(item.id)}
+                      className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                    >
+                      Buy Now
+                    </button>
+                  )}
                 </div>
                 <p className="mt-2 text-xs text-gray-500">📍 {item.location}</p>
               </div>
