@@ -1,4 +1,5 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { notFound } from "next/navigation";
 import BuyButton from "./BuyButton"; // ✅ client component
 
@@ -27,7 +28,8 @@ async function getListing(id: string): Promise<Listing | null> {
 }
 
 // 🔹 Server Component
-export default async function ListingPage({ params }: { params: { id: string } }) {
+// @ts-expect-error Async params typing bug in Next.js App Router
+export default async function ListingPage({ params }: { params: any }) {
   const listing = await getListing(params.id);
 
   if (!listing) return notFound();
