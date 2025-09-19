@@ -47,7 +47,7 @@ export default function LoginPage() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
       <div className="bg-white p-6 rounded-xl shadow-md w-80">
         <h1 className="text-2xl font-bold mb-4 text-center text-purple-700">
-          Mock Pi Login
+          Pi Marketplace Login
         </h1>
 
         {user ? (
