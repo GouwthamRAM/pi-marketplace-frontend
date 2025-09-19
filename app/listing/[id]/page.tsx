@@ -25,9 +25,12 @@ async function getListing(id: string): Promise<Listing | null> {
   }
 }
 
-// 🔹 Server Component
-// ❌ no typing on `params` → avoids TS / ESLint conflict on Vercel
-export default async function ListingPage({ params }) {
+// 🔹 Explicitly type params as "Record<string, string>"
+export default async function ListingPage({
+  params,
+}: {
+  params: Record<string, string>;
+}) {
   const listing = await getListing(params.id);
 
   if (!listing) return notFound();
