@@ -12,10 +12,10 @@ type Sale = {
     title: string;
     price: number;
     currency: string;
-    buyer?: {
-      pi_username: string;
-      full_name: string;
-    };
+  };
+  buyer?: {
+    pi_username: string;
+    full_name: string;
   };
 };
 
@@ -30,7 +30,6 @@ export default function SalesPage() {
       return;
     }
 
-    // Only fetch if seller (for midpoint demo: id=1 is Anna seller)
     if (user.id === 1) {
       fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/orders/seller/${user.id}`)
         .then((res) => res.json())
@@ -92,8 +91,8 @@ export default function SalesPage() {
                   <td className="px-4 py-2 border">{sale.id}</td>
                   <td className="px-4 py-2 border">{sale.listing?.title}</td>
                   <td className="px-4 py-2 border">
-                    {sale.listing?.buyer
-                      ? `${sale.listing.buyer.full_name} (${sale.listing.buyer.pi_username})`
+                    {sale.buyer
+                      ? `${sale.buyer.full_name} (${sale.buyer.pi_username})`
                       : "N/A"}
                   </td>
                   <td className="px-4 py-2 border">

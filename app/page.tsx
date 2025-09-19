@@ -79,7 +79,16 @@ export default function Home() {
                   <p className="font-bold text-lg">
                     {item.price} {item.currency}
                   </p>
-                  {/* ❌ No Buy button here — handled in listing detail */}
+                  {user.id === 2 ? (
+                    <Link
+                      href={`/listing/${item.id}`}
+                      className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm"
+                    >
+                      View & Buy
+                    </Link>
+                  ) : (
+                    <span className="text-xs text-gray-500 italic">👀 Seller View</span>
+                  )}
                 </div>
                 <p className="mt-2 text-xs text-gray-500">📍 {item.location}</p>
               </div>
