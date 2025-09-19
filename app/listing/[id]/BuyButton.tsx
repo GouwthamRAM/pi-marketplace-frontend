@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "../context/AuthContext"; // ✅ import AuthContext
+import { useAuth } from "../../context/AuthContext"; // ✅ import AuthContext
 
 export default function BuyButton({ listingId }: { listingId: number }) {
   const { user } = useAuth();
