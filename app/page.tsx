@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "./components/Navbar";
-import { useAuth } from "./context/AuthContext"; // ✅ import
+import { useAuth } from "./context/AuthContext";
 
 type Listing = {
   id: number;
@@ -17,17 +17,17 @@ type Listing = {
 };
 
 export default function Home() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
 
   // 🚀 Redirect unauthenticated users to /login
   useEffect(() => {
-    if (!user) {
+    if (!authLoading && !user) {
       router.replace("/login");
     }
-  }, [user, router]);
+  }, [user, authLoading, router]);
 
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/listings`)
@@ -42,8 +42,12 @@ export default function Home() {
       });
   }, []);
 
+  if (authLoading) {
+    return <p className="p-6">Loading...</p>;
+  }
+
   if (!user) {
-    return null; // prevent flashing Home before redirect
+    return null; // redirect already triggered
   }
 
   return (

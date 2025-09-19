@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAuth } from "../context/AuthContext"; // ✅ import
+import { useRouter } from "next/navigation";
+import { useAuth } from "../context/AuthContext";
 
 type Sale = {
   id: number;
@@ -20,15 +21,19 @@ type Sale = {
 };
 
 export default function SalesPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [sales, setSales] = useState<Sale[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
-    if (!user) {
-      setLoading(false);
-      return;
+    if (!authLoading && !user) {
+      router.replace("/login"); // ✅ redirect if logged out
     }
+  }, [user, authLoading, router]);
+
+  useEffect(() => {
+    if (!user || authLoading) return;
 
     if (user.id === 1) {
       fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/orders/seller/${user.id}`)
@@ -44,15 +49,10 @@ export default function SalesPage() {
     } else {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, authLoading]);
 
-  if (!user) {
-    return (
-      <main className="min-h-screen bg-gray-50 p-8">
-        <h1 className="text-3xl font-bold mb-6">My Sales</h1>
-        <p>⚠️ Please log in as a seller to view sales.</p>
-      </main>
-    );
+  if (authLoading || !user) {
+    return <p className="p-6">Loading...</p>;
   }
 
   if (user.id !== 1) {

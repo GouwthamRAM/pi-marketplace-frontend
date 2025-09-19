@@ -10,6 +10,7 @@ type User = {
 
 type AuthContextType = {
   user: User | null;
+  loading: boolean;
   login: (user: User) => void;
   logout: () => void;
 };
@@ -18,6 +19,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Load saved user from localStorage, if any
@@ -29,6 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem('piUser');
       }
     }
+    setLoading(false);
   }, []);
 
   const login = (userData: User) => {
@@ -42,7 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,5 +1,9 @@
-import { notFound } from "next/navigation";
-import BuyButton from "./BuyButton"; // ✅ client component
+"use client";
+
+import { notFound, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useAuth } from "../../context/AuthContext"; // ✅ import
+import BuyButton from "./BuyButton";
 
 type Listing = {
   id: number;
@@ -11,29 +15,53 @@ type Listing = {
   location: string;
 };
 
-// 🔹 Server-side fetch
-async function getListing(id: string): Promise<Listing | null> {
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/v1/listings/${id}`,
-      { cache: "no-store" }
-    );
-    if (!res.ok) return null;
-    return res.json();
-  } catch {
-    return null;
+export default function ListingPage({ params }: { params: { id: string } }) {
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
+  const [listing, setListing] = useState<Listing | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // 🚀 Redirect unauthenticated users
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace("/login");
+    }
+  }, [user, authLoading, router]);
+
+  // Fetch listing
+  useEffect(() => {
+    if (!params.id) return;
+
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/listings/${params.id}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Not found");
+        return res.json();
+      })
+      .then((data) => {
+        setListing(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setListing(null);
+        setLoading(false);
+      });
+  }, [params.id]);
+
+  if (authLoading) {
+    return <p className="p-6">Loading...</p>;
   }
-}
 
-// 🔹 Explicitly type params as "Record<string, string>"
-export default async function ListingPage({
-  params,
-}: {
-  params: Record<string, string>;
-}) {
-  const listing = await getListing(params.id);
+  if (!user) {
+    return null; // redirect already triggered
+  }
 
-  if (!listing) return notFound();
+  if (loading) {
+    return <p className="p-6">Loading listing...</p>;
+  }
+
+  if (!listing) {
+    return notFound();
+  }
 
   return (
     <main className="min-h-screen bg-gray-50 p-8">
@@ -48,10 +76,14 @@ export default async function ListingPage({
           {listing.category}
         </span>
 
-        {/* ✅ Client Buy Button */}
-        <div className="mt-6">
-          <BuyButton listingId={listing.id} />
-        </div>
+        {/* ✅ Only buyers see Buy button */}
+        {user.id === 2 ? (
+          <div className="mt-6">
+            <BuyButton listingId={listing.id} />
+          </div>
+        ) : (
+          <p className="mt-6 text-gray-500 italic">👀 Seller View</p>
+        )}
       </div>
     </main>
   );

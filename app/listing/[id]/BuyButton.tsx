@@ -1,22 +1,34 @@
 "use client";
 
-import { useState } from "react";
-import { useAuth } from "../../context/AuthContext"; // ✅ fixed path
+import { useState, useRef, useEffect } from "react";
+import { useAuth } from "../../context/AuthContext";
 
 export default function BuyButton({ listingId }: { listingId: number }) {
   const { user } = useAuth();
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // 🧹 Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+
+  const showMessage = (msg: string) => {
+    setStatusMessage(msg);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setStatusMessage(null), 3000);
+  };
 
   const handleBuy = async () => {
     if (!user) {
-      setStatusMessage("⚠️ Please log in before placing an order.");
-      setTimeout(() => setStatusMessage(null), 3000);
+      showMessage("⚠️ Please log in before placing an order.");
       return;
     }
 
     if (user.id === 1) {
-      setStatusMessage("⚠️ Sellers cannot buy their own products.");
-      setTimeout(() => setStatusMessage(null), 3000);
+      showMessage("⚠️ Sellers cannot buy their own products.");
       return;
     }
 
@@ -36,24 +48,21 @@ export default function BuyButton({ listingId }: { listingId: number }) {
       const data = await response.json();
 
       if (response.ok) {
-        setStatusMessage(
-          `✅ Order placed successfully for listing #${listingId}`
-        );
+        showMessage(`✅ Order placed successfully for listing #${listingId}`);
       } else {
-        setStatusMessage(`❌ Failed: ${data.error || "Unknown error"}`);
+        showMessage(`❌ Failed: ${data.error || "Unknown error"}`);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error(error);
-      setStatusMessage("❌ Network error while placing order");
+      showMessage("❌ Network error while placing order");
     }
-
-    setTimeout(() => setStatusMessage(null), 3000);
   };
 
-  // 👉 Hide button for Seller
+  // 👉 UI logic
   if (!user) {
     return <p className="text-sm text-gray-500">⚠️ Please log in to buy.</p>;
   }
+
   if (user.id === 1) {
     return (
       <p className="text-sm text-gray-500">
@@ -72,7 +81,15 @@ export default function BuyButton({ listingId }: { listingId: number }) {
       </button>
 
       {statusMessage && (
-        <div className="mt-3 p-2 bg-green-100 text-green-800 rounded shadow">
+        <div className="mt-3 p-2 rounded shadow text-sm
+          ${
+            statusMessage.startsWith("✅")
+              ? "bg-green-100 text-green-800"
+              : statusMessage.startsWith("⚠️")
+              ? "bg-yellow-100 text-yellow-800"
+              : "bg-red-100 text-red-800"
+          }"
+        >
           {statusMessage}
         </div>
       )}

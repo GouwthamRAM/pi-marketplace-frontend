@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "../context/AuthContext"; // ✅ import
+import { useAuth } from "../context/AuthContext";
 
 type Order = {
   id: number;
@@ -21,25 +21,25 @@ type Order = {
 };
 
 export default function OrdersPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    if (!user) {
-      setLoading(false);
-      return;
+    if (!authLoading && !user) {
+      router.replace("/login"); // ✅ redirect if logged out
     }
+  }, [user, authLoading, router]);
 
-    // 👉 If this user is a seller, redirect to /sales
-    // (for now, just use seeded IDs: 1 = Anna seller, 2 = Bob buyer)
+  useEffect(() => {
+    if (!user || authLoading) return;
+
     if (user.id === 1) {
-      router.push("/sales");
+      router.replace("/sales"); // ✅ sellers shouldn’t see orders
       return;
     }
 
-    // 👉 Otherwise fetch buyer's orders
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/orders?buyerId=${user.id}`)
       .then((res) => res.json())
       .then((data) => {
@@ -50,15 +50,10 @@ export default function OrdersPage() {
         console.error("Error fetching orders:", err);
         setLoading(false);
       });
-  }, [user, router]);
+  }, [user, authLoading, router]);
 
-  if (!user) {
-    return (
-      <main className="min-h-screen bg-gray-50 p-8">
-        <h1 className="text-3xl font-bold mb-6">My Orders</h1>
-        <p>⚠️ Please log in as a buyer to view your orders.</p>
-      </main>
-    );
+  if (authLoading || !user) {
+    return <p className="p-6">Loading...</p>;
   }
 
   return (
