@@ -81,18 +81,19 @@ export default function BuyButton({ listingId }: { listingId: number }) {
       </button>
 
       {statusMessage && (
-        <div className="mt-3 p-2 rounded shadow text-sm
-          ${
-            statusMessage.startsWith("✅")
-              ? "bg-green-100 text-green-800"
-              : statusMessage.startsWith("⚠️")
-              ? "bg-yellow-100 text-yellow-800"
-              : "bg-red-100 text-red-800"
-          }"
+        <div
+          className={`mt-3 p-2 rounded shadow text-sm ${
+          statusMessage.startsWith("✅")
+            ? "bg-green-100 text-green-800"
+            : statusMessage.startsWith("⚠️")
+            ? "bg-yellow-100 text-yellow-800"
+            : "bg-red-100 text-red-800"
+          }`}
         >
           {statusMessage}
         </div>
       )}
+
     </div>
   );
 }
