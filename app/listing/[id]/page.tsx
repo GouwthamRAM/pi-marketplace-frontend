@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { notFound } from "next/navigation";
 import BuyButton from "./BuyButton"; // ✅ client component
 
@@ -28,8 +26,8 @@ async function getListing(id: string): Promise<Listing | null> {
 }
 
 // 🔹 Server Component
-// @ts-expect-error Async params typing bug in Next.js App Router
-export default async function ListingPage({ params }: { params: any }) {
+// ❌ no typing on `params` → avoids TS / ESLint conflict on Vercel
+export default async function ListingPage({ params }) {
   const listing = await getListing(params.id);
 
   if (!listing) return notFound();
