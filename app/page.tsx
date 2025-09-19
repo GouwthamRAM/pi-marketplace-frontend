@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Navbar from "./components/Navbar";
+import { useAuth } from "./context/AuthContext"; // ✅ import
 
 type Listing = {
   id: number;
@@ -15,15 +17,17 @@ type Listing = {
 };
 
 export default function Home() {
+  const { user } = useAuth();
+  const router = useRouter();
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusMessage, setStatusMessage] = useState<string | null>(null);
-  const [role, setRole] = useState<"buyer" | "seller">("buyer");
 
+  // 🚀 Redirect unauthenticated users to /login
   useEffect(() => {
-    const savedRole = localStorage.getItem("userRole") || "buyer";
-    setRole(savedRole as "buyer" | "seller");
-  }, []);
+    if (!user) {
+      router.replace("/login");
+    }
+  }, [user, router]);
 
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/listings`)
@@ -38,29 +42,9 @@ export default function Home() {
       });
   }, []);
 
-  const handleBuy = async (listingId: number) => {
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/orders/mock`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ buyerId: 2, listingId }),
-        }
-      );
-      const data = await response.json();
-
-      if (response.ok) {
-        setStatusMessage(`✅ Order placed for "${data.order?.title || "listing"}"!`);
-      } else {
-        setStatusMessage(`❌ Failed: ${data.error || "Unknown error"}`);
-      }
-    } catch {
-      setStatusMessage("❌ Network error while placing order");
-    }
-
-    setTimeout(() => setStatusMessage(null), 3000);
-  };
+  if (!user) {
+    return null; // prevent flashing Home before redirect
+  }
 
   return (
     <main className="min-h-screen flex flex-col bg-gray-50">
@@ -68,12 +52,6 @@ export default function Home() {
 
       <div className="flex-grow p-8">
         <h1 className="text-3xl font-bold mb-6">Browse Listings</h1>
-
-        {statusMessage && (
-          <div className="mb-4 p-3 bg-green-100 text-green-800 rounded shadow">
-            {statusMessage}
-          </div>
-        )}
 
         {loading ? (
           <p>Loading listings...</p>
@@ -101,14 +79,7 @@ export default function Home() {
                   <p className="font-bold text-lg">
                     {item.price} {item.currency}
                   </p>
-                  {role === "buyer" && (
-                    <button
-                      onClick={() => handleBuy(item.id)}
-                      className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-                    >
-                      Buy Now
-                    </button>
-                  )}
+                  {/* ❌ No Buy button here — handled in listing detail */}
                 </div>
                 <p className="mt-2 text-xs text-gray-500">📍 {item.location}</p>
               </div>
