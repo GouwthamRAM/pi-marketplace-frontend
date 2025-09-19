@@ -11,6 +11,14 @@ type Listing = {
   location: string;
 };
 
+// 🔹 Explicitly type params as string index signature
+interface ListingPageProps {
+  params: {
+    id: string;
+    [key: string]: string; // ✅ ensures compatibility with Next.js
+  };
+}
+
 // 🔹 Server-side fetch
 async function getListing(id: string): Promise<Listing | null> {
   try {
@@ -26,9 +34,7 @@ async function getListing(id: string): Promise<Listing | null> {
 }
 
 // 🔹 Server Component
-// ❌ Don't over-type params (Vercel build issue)
-// ✅ Use `any` to bypass constraint errors
-export default async function ListingPage({ params }: any) {
+export default async function ListingPage({ params }: ListingPageProps) {
   const listing = await getListing(params.id);
 
   if (!listing) return notFound();
