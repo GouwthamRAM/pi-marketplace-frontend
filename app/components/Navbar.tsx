@@ -2,18 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
 import { Coins } from "lucide-react"; // ✅ import icon
-import LoginToggle from "./LoginToggle";
+import { useAuth } from "../context/AuthContext"; // ✅ import
 
 export default function Navbar() {
   const pathname = usePathname();
-  const [role, setRole] = useState<"buyer" | "seller">("buyer");
-
-  useEffect(() => {
-    const savedRole = localStorage.getItem("userRole") || "buyer";
-    setRole(savedRole as "buyer" | "seller");
-  }, []);
+  const { user, logout } = useAuth();
 
   // ✅ Active link = bold + white underline
   const linkClass = (path: string) =>
@@ -34,17 +28,33 @@ export default function Navbar() {
           Home
         </Link>
 
-        {role === "buyer" ? (
-          <Link href="/orders" className={linkClass("/orders")}>
-            My Orders
-          </Link>
+        {user ? (
+          <>
+            {user.id === 2 ? ( // Bob = Buyer
+              <Link href="/orders" className={linkClass("/orders")}>
+                My Orders
+              </Link>
+            ) : (
+              <Link href="/sales" className={linkClass("/sales")}>
+                My Sales
+              </Link>
+            )}
+
+            <span className="text-sm italic">
+              Logged in as {user.full_name}
+            </span>
+            <button
+              onClick={logout}
+              className="px-3 py-1 bg-red-500 hover:bg-red-600 rounded text-sm"
+            >
+              Logout
+            </button>
+          </>
         ) : (
-          <Link href="/sales" className={linkClass("/sales")}>
-            My Sales
+          <Link href="/login" className={linkClass("/login")}>
+            Login
           </Link>
         )}
-
-        <LoginToggle />
       </div>
     </nav>
   );

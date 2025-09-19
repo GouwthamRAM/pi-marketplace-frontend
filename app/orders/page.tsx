@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "../context/AuthContext"; // ✅ import
 
 type Order = {
   id: number;
   amount: number;
   status: string;
   createdAt: string;
-  Listing: {
+  listing: {
     title: string;
     price: number;
     currency: string;
@@ -20,39 +21,51 @@ type Order = {
 };
 
 export default function OrdersPage() {
+  const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [role, setRole] = useState<"buyer" | "seller">("buyer");
   const router = useRouter();
 
   useEffect(() => {
-    const savedRole = localStorage.getItem("userRole") || "buyer";
-    setRole(savedRole as "buyer" | "seller");
-
-    if (savedRole === "buyer") {
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/orders?buyerId=2`)
-        .then((res) => res.json())
-        .then((data) => {
-          setOrders(data);
-          setLoading(false);
-        })
-        .catch((err) => {
-          console.error("Error fetching orders:", err);
-          setLoading(false);
-        });
-    } else {
-      // ✅ Redirect sellers to /sales
-      router.push("/sales");
+    if (!user) {
+      setLoading(false);
+      return;
     }
-  }, [router]);
+
+    // 👉 If this user is a seller, redirect to /sales
+    // (for now, just use seeded IDs: 1 = Anna seller, 2 = Bob buyer)
+    if (user.id === 1) {
+      router.push("/sales");
+      return;
+    }
+
+    // 👉 Otherwise fetch buyer's orders
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/orders?buyerId=${user.id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setOrders(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching orders:", err);
+        setLoading(false);
+      });
+  }, [user, router]);
+
+  if (!user) {
+    return (
+      <main className="min-h-screen bg-gray-50 p-8">
+        <h1 className="text-3xl font-bold mb-6">My Orders</h1>
+        <p>⚠️ Please log in as a buyer to view your orders.</p>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-gray-50 p-8">
       <h1 className="text-3xl font-bold mb-6">My Orders</h1>
 
-      {role === "seller" ? (
-        <p>Redirecting to My Sales...</p>
-      ) : loading ? (
+      {loading ? (
         <p>Loading orders...</p>
       ) : orders.length === 0 ? (
         <p>You have not placed any orders yet.</p>
@@ -73,13 +86,13 @@ export default function OrdersPage() {
               {orders.map((order) => (
                 <tr key={order.id} className="hover:bg-gray-50">
                   <td className="px-4 py-2 border">{order.id}</td>
-                  <td className="px-4 py-2 border">{order.Listing?.title}</td>
+                  <td className="px-4 py-2 border">{order.listing?.title}</td>
                   <td className="px-4 py-2 border">
-                    {order.Listing?.seller?.full_name} (
-                    {order.Listing?.seller?.pi_username})
+                    {order.listing?.seller?.full_name} (
+                    {order.listing?.seller?.pi_username})
                   </td>
                   <td className="px-4 py-2 border">
-                    {order.amount} {order.Listing?.currency}
+                    {order.amount} {order.listing?.currency}
                   </td>
                   <td className="px-4 py-2 border">
                     <span

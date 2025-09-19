@@ -1,11 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import { useAuth } from "../context/AuthContext"; // ✅ import AuthContext
 
 export default function BuyButton({ listingId }: { listingId: number }) {
+  const { user } = useAuth();
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   const handleBuy = async () => {
+    if (!user) {
+      setStatusMessage("⚠️ Please log in before placing an order.");
+      setTimeout(() => setStatusMessage(null), 3000);
+      return;
+    }
+
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/v1/orders/mock`,
@@ -15,7 +23,7 @@ export default function BuyButton({ listingId }: { listingId: number }) {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            buyerId: 2, // demo buyer (Bob Buyer from seed data)
+            buyerId: user.id, // ✅ dynamic from login
             listingId: listingId,
           }),
         }
@@ -24,11 +32,13 @@ export default function BuyButton({ listingId }: { listingId: number }) {
       const data = await response.json();
 
       if (response.ok) {
-        setStatusMessage(`✅ Order placed successfully for listing #${listingId}`);
+        setStatusMessage(
+          `✅ Order placed successfully for listing #${listingId}`
+        );
       } else {
         setStatusMessage(`❌ Failed: ${data.error || "Unknown error"}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
       setStatusMessage("❌ Network error while placing order");
     }

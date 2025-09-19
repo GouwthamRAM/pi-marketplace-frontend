@@ -4,10 +4,11 @@ _Next.js app for Pi Marketplace (Pi Hackathon 2025)_
 ## 🚀 Overview
 Pi Marketplace is a **hyperlocal buy/sell platform** for the **Pi Network**.  
 This is the **frontend app** that consumes the [backend API](https://your-railway-backend-url.up.railway.app).  
+
 It allows judges and users to:
 - Browse local listings
 - Buy items with Pi (mock payments at midpoint)
-- Switch between **Buyer** and **Seller** roles
+- Log in as **Buyer** or **Seller** (mock Pi authentication)
 - Track orders (buyers) and manage sales (sellers)
 - View Pioneer profile
 
@@ -19,8 +20,7 @@ It allows judges and users to:
 - **Buy Now button** → mock Pi payment flow
 - **Orders page** (buyers)
 - **Sales page** (sellers)
-- **Profile page**
-- **Role toggle** between buyer/seller
+- **Login / Logout flow** (mock Pi Auth)
 - **Branded UI** (purple + gold Pi theme, logo, favicon)
 
 ---
@@ -28,6 +28,7 @@ It allows judges and users to:
 ## 🛠 Tech Stack
 - Next.js 15 (App Router)
 - TailwindCSS
+- Context API for mock login state
 - Deployed on **Vercel**
 - Backend: Express + PostgreSQL (on Railway)
 
@@ -40,15 +41,31 @@ It allows judges and users to:
 ---
 
 ## 👥 Demo Users
-- **Buyer** → Bob Buyer (id = 2)  
-- **Seller** → Anna Seller (id = 1)  
-👉 Switch roles in the navbar toggle to demo both perspectives.
+The app uses **mock Pi login** — no real authentication yet.  
+Go to `/login` and select a demo user:
+
+- **Buyer** → Bob Buyer (`id = 2`)  
+- **Seller** → Anna Seller (`id = 1`)  
+
+---
+
+## 🎬 Demo Flow
+1. Go to `/login` → log in as **Bob Buyer**.  
+2. Browse listings → click one → **Buy Now** → order created (mock Pi payment).  
+3. Go to `/orders` → see Bob’s orders.  
+4. Logout → `/login` → log in as **Anna Seller**.  
+5. Go to `/sales` → see Anna’s sales (including Bob’s order).  
 
 ---
 
 ## 📅 Hackathon Timeline
 - **Midpoint (19 Sept)** → Working prototype ✅  
-- **Final (19 Oct)** → Full Pi SDK integration + advanced flows
+  - Buyer → Seller → Order flow with mock Pi payments  
+  - Deployed frontend + backend  
+- **Final (19 Oct)** →  
+  - Pi SDK integration for real escrow payments  
+  - Delivery confirmation & dispute flow  
+  - Extra polish on profiles, categories, and UX
 
 ---
 
